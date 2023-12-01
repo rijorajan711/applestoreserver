@@ -3,7 +3,7 @@
    const jwt=require("jsonwebtoken")
    const productsModel=require("../DB/Models/productSchema")
    const userLoginModel=require("../DB/Models/userLoginSchema")
-
+   const trendingProductsModel =require("../DB/Models/trendingProductSchema")
 
     module.exports={
 
@@ -25,7 +25,7 @@
       },
       addProductController:async(req,res)=>{
             const {title,description,category,price}=req.body
-            console.log("ethaaaaaaaaanu files",req.files)
+            console.log("ethaaaaaaaaanu files",typeof price)
             const uploadImagesArray=req.files.map((file)=>{return file.filename})
             console.log("ethaaaaaaaaanu files arrayyyyyyyyyyyyyyy",uploadImagesArray)
             const productExist=await productsModel.findOne({title})
@@ -36,7 +36,7 @@
                     title:title,
                     description:description,
                     category:category,
-                    price:price,
+                    price:Number.parseFloat(price),
                     uploadimages:uploadImagesArray
                 })
 
@@ -115,8 +115,99 @@
                    })
                    
 
+            },
+
+            addTrendingProductController:async(req,res)=>{
+
+
+                const {title,description,category,price}=req.body
+
+                console.log("ethaaaaaaaaanu files",req.body)
+                const uploadImagesArray=req.files.map((file)=>{return file.filename})
+
+
+                console.log("ethaaaaaaaaanu files arrayyyyyyyyyyyyyyy",uploadImagesArray)
+               const trendingProductLength=await trendingProductsModel.find()
+
+
+               if(trendingProductLength.length>4){
+
+                   res.status(401).json("Maximum Added trending product is 4")
+
+
+
+               }else{
+
+
+                   const productExist=await trendingProductsModel.findOne({title})
+                   console.log("aaaaaaaaaaaaaaaaaaaale",productExist)
+                
+                        if(productExist){
+                       res.status(501).json("The product already Exist..")
+                   }else{
+                       console.log("saving dataaaaaaaaaaaaaaaaaa")
+                       const addProductToDataBase=new trendingProductsModel({
+                           title:title,
+                           description:description,
+                           category:category,
+                           price:price,
+                           uploadimages:uploadImagesArray
+                       })
+       
+                       await addProductToDataBase.save().then((data)=>{
+                            res.status(200).json(`${data.title} is added successfully`)
+                       }).catch((err)=>{
+                           res.status(400).json(err)
+                       })
+                   }
+
+               }
+                
+               
+    
+
+            },
+            getAllTrendingProductController:async(req,res)=>{
+
+                 await trendingProductsModel.find().then((data)=>{
+                    res.status(200).json(data)
+            }).catch((err)=>{
+                    res.status(401).json(err)
+            })
+
+            },
+
+            deleteTrendingProductController:async(req,res)=>{
+
+
+                const productId=req.body.productId
+                // console.log("product id from server",productId)
+                   await trendingProductsModel.findOneAndDelete({_id:productId}).then((data)=>{
+                       res.status(200).json(data)
+                    }).catch((err)=>{
+                        res.status(401).json(err)
+                        
+                    })
+
+                    
+            },
+
+            editTrendingProductController:async(req,res)=>{
+                    
+                const {productid,title,description,category,price,uploadimages}=req.body
+             
+                const uploadimagesInControler=req.files?req.files.map((file)=>(file.filename)):uploadimages.split(",")
+                
+                const result=await trendingProductsModel.findByIdAndUpdate({_id:productid},{title,description,category,price,uploadimages:uploadimagesInControler},{new:true})
+                await result.save().then((data)=>{
+                    
+                        res.status(200).json(data)
+                   }).catch((err)=>{
+                        res.status(401).json(err)
+                   })
+
             }
-    }
+            }
                    
          
 

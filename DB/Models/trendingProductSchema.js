@@ -1,6 +1,6 @@
 const mongoose=require("mongoose")
 
-const productSchema=new mongoose.Schema({
+const trendingProductSchema=new mongoose.Schema({
 
     
     title:{
@@ -27,8 +27,8 @@ const productSchema=new mongoose.Schema({
 
 })
 
-const productsModel=mongoose.model("products",productSchema)
-module.exports=productsModel
+const trndingProductsModel=mongoose.model("trndingproducts",trendingProductSchema)
+module.exports=trndingProductsModel
 
 
 
