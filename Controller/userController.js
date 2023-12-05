@@ -60,8 +60,11 @@ module.exports = {
             });
     },
     userGetAllProductController: async (req, res) => {
+         let searhKey=req.query.search
+         console.log(searhKey)
+        
         await productsModel
-            .find()
+            .find({title:{$regex:searhKey,$options:"i"}})
             .then((data) => {
                 res.status(200).json(data);
             })

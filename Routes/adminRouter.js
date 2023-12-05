@@ -13,7 +13,9 @@ const {
   addTrendingProductController,
   getAllTrendingProductController,
   deleteTrendingProductController,
-  editTrendingProductController
+  editTrendingProductController,
+  getGraphDataController,
+  getProductCategoryGraphData
 } = require("../Controller/adminController.js");
 const multerConfig = require("../middleware/multerMiddleWare.js");
 //admin login verification
@@ -81,5 +83,15 @@ router.put(
   multerConfig.array("uploadimages", 4),
   editTrendingProductController
 );
+
+router.get(
+  "/getgraphdata",
+  getGraphDataController
+)
+
+router.get(
+  "/getproductgraphdata",
+  getProductCategoryGraphData
+)
 
 module.exports = router;

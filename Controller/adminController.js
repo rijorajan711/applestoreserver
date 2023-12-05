@@ -206,7 +206,28 @@
                         res.status(401).json(err)
                    })
 
+            },
+            getGraphDataController:async(req,res)=>{
+                const totalUser=await userLoginModel.find()
+                const noOfTotalUser=totalUser.length
+                const blockedUser=await userLoginModel.find({status:true})
+                const noOfBlockedUser=blockedUser.length
+                const activeUser=await userLoginModel.find({status:false})
+                const noOfActiveUser=activeUser.length
+                res.status(200).json([noOfTotalUser,noOfBlockedUser,noOfActiveUser])
+            },
+            getProductCategoryGraphData:async(req,res)=>{
+                const totalPhone=await productsModel.find({category:"phone"})
+                const noOfPhone=totalPhone.length
+                const totallap=await productsModel.find({category:"lap"})
+                const noOfLap=totallap.length
+                const totalearphone=await productsModel.find({category:"earphone"})
+                const noOfEarphone=totalearphone.length
+
+                res.status(200).json([noOfPhone,noOfLap,noOfEarphone])
             }
+
+
             }
                    
          
