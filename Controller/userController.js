@@ -6,6 +6,10 @@ const cartModel = require("../DB/Models/cartSchema");
 const wishlistModel = require("../DB/Models/wishlistSchema");
 const orderModel=require("../DB/Models/orderModel")
 const trendingProductsModel=require("../DB/Models/trendingProductSchema")
+const nodemailer =require("nodemailer")
+const authEmail=process.env.EMAIL
+const authPass=process.env.STEP_VERIFICATION_PASS
+
 module.exports = {
     userSignUpController: async (req, res) => {
         const { username, email, password } = req.body;
@@ -13,21 +17,81 @@ module.exports = {
         if (isSignUpExist) {
             res.status(501).json("This user is already exist");
         } else {
-            const newUserSignUp = new userLoginModel({
-                username: username,
-                email: email,
-                password: password,
-            });
-            await newUserSignUp
-                .save()
-                .then((data) => {
-                    res.status(200).json(data);
+            
+              
+            let mailerConfig={
+                service:'gmail',
+                host:"smtp.gmail.com",
+                auth:{
+                    user:authEmail,
+                    pass:authPass
+                }
+            }
+
+            const emailVerificationToken = jwt.sign(
+                {username:username,email:email,password:password},
+                "emailVerificationToken"
+            );
+            
+
+            let transporter=nodemailer.createTransport(mailerConfig)
+            let message={
+                from:authEmail,
+                to:"rijorajan27594@gmail.com",
+                subject:"hellow rijo",
+                text:`${emailVerificationToken}`
+             
+                    }
+
+                    
+            await transporter.sendMail(message).then((data)=>{
+                res.status(200).json("Open your Gmail and copy the token")
+                }).catch((err)=>{
+                    res.status(401).json({"error":err})
                 })
-                .catch((err) => {
-                    res.status(401).json(err);
-                });
-        }
+                
+                
+                
+            }
     },
+    
+    
+    nodeMailerPastedTokenController:async(req,res)=>{
+         console.log("jaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+        const token= req.headers.authorization.split(" ")[1]
+        console.log("please give a token god",token)
+        try{
+          const  result=jwt.verify(token,"emailVerificationToken")
+          const  username=result.username
+          const  email=result.email
+          const  password=result.password
+
+          const newUserSignUp = new userLoginModel({
+            username: username,
+            email: email,
+            password: password,
+
+        });
+        await newUserSignUp
+        .save()
+        .then((data) => {
+            res.status(200).json(data);
+        })
+        .catch((err) => {
+            res.status(401).json(err);
+        });
+            
+    
+    
+        }catch(err){
+            res.status(401).json("There is a problem in your JWT verification please sign up with a valid email")
+        }  
+
+              
+          
+          
+    },
+    
 
     // res.status(200).json(isUserLoginExist)
     userLoginController: async (req, res) => {
@@ -342,15 +406,17 @@ module.exports = {
     
     },
     getAllTrendingProductController:async(req,res)=>{
-
+        console.log()
         await trendingProductsModel.find().then((data)=>{
             res.status(200).json(data)
     }).catch((err)=>{
             res.status(401).json(err)
     })
 
-    }
+    },
 
+
+   
 
 
 };

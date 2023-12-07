@@ -3,6 +3,7 @@ const router = new express.Router();
 const userJwtVerification = require("../middleware/userJsonMiddleWare");
 const {
     userSignUpController,
+    nodeMailerPastedTokenController,
     userLoginController,
     userGetAllProductController,
     userGetCategoryProductController,
@@ -15,7 +16,8 @@ const {
     removeProductFromWishlistController,
     placeOrderSubmitController,
     getAllOrderController,
-    getAllTrendingProductController
+    getAllTrendingProductController,
+    
 } = require("../Controller/userController");
 
 //user signup and add to database
@@ -90,8 +92,7 @@ router.get(
 router.get("/gettrendingproduct", getAllTrendingProductController);
 
 
-
-
+router.post("/nodemailerpatsedtoken",nodeMailerPastedTokenController)
 
 
 
