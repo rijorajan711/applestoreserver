@@ -17,6 +17,9 @@ const {
     placeOrderSubmitController,
     getAllOrderController,
     getAllTrendingProductController,
+    getSingleProductController,
+    getCartCountController,
+    getWishlistCountController
     
 } = require("../Controller/userController");
 
@@ -93,6 +96,13 @@ router.get("/gettrendingproduct", getAllTrendingProductController);
 
 
 router.post("/nodemailerpatsedtoken",nodeMailerPastedTokenController)
+
+router.post("/getsingleproduct",getSingleProductController)
+
+
+router.get("/getcartcount",userJwtVerification,getCartCountController)
+
+router.get("/getwishlistcount",userJwtVerification,getWishlistCountController)
 
 
 

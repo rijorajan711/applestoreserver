@@ -7,7 +7,7 @@ const storage = multer.diskStorage({
         cb(null,'./uploads');
     },
     filename: (req, file, cb) => {
-        console.log("inside filenmae")
+        // console.log("inside filenmae")
         const filename = `image-${Date.now()}-${file.originalname}`
         cb(null, filename)
     }

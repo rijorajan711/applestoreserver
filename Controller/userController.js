@@ -4,11 +4,11 @@ const userLoginModel = require("../DB/Models/userLoginSchema");
 const productsModel = require("../DB/Models/productSchema");
 const cartModel = require("../DB/Models/cartSchema");
 const wishlistModel = require("../DB/Models/wishlistSchema");
-const orderModel=require("../DB/Models/orderModel")
-const trendingProductsModel=require("../DB/Models/trendingProductSchema")
-const nodemailer =require("nodemailer")
-const authEmail=process.env.EMAIL
-const authPass=process.env.STEP_VERIFICATION_PASS
+const orderModel = require("../DB/Models/orderModel");
+const trendingProductsModel = require("../DB/Models/trendingProductSchema");
+const nodemailer = require("nodemailer");
+const authEmail = process.env.EMAIL;
+const authPass = process.env.STEP_VERIFICATION_PASS;
 
 module.exports = {
     userSignUpController: async (req, res) => {
@@ -17,102 +17,91 @@ module.exports = {
         if (isSignUpExist) {
             res.status(501).json("This user is already exist");
         } else {
-            
-              
-            let mailerConfig={
-                service:'gmail',
-                host:"smtp.gmail.com",
-                auth:{
-                    user:authEmail,
-                    pass:authPass
-                }
-            }
+            let mailerConfig = {
+                service: "gmail",
+                host: "smtp.gmail.com",
+                auth: {
+                    user: authEmail,
+                    pass: authPass,
+                },
+            };
 
             const emailVerificationToken = jwt.sign(
-                {username:username,email:email,password:password},
+                { username: username, email: email, password: password },
                 "emailVerificationToken"
             );
-            
 
-            let transporter=nodemailer.createTransport(mailerConfig)
-            let message={
-                from:authEmail,
-                to:"rijorajan27594@gmail.com",
-                subject:"hellow rijo",
-                text:`${emailVerificationToken}`
-             
-                    }
+            let transporter = nodemailer.createTransport(mailerConfig);
+            let message = {
+                from: authEmail,
+                to: "rijorajan27594@gmail.com",
+                subject: "hellow rijo",
+                text: `${emailVerificationToken}`,
+            };
 
-                    
-            await transporter.sendMail(message).then((data)=>{
-                res.status(200).json("Open your Gmail and copy the token")
-                }).catch((err)=>{
-                    res.status(401).json({"error":err})
+            await transporter
+                .sendMail(message)
+                .then((data) => {
+                    res.status(200).json("Open your Gmail and copy the token");
                 })
-                
-                
-                
-            }
+                .catch((err) => {
+                    res.status(401).json({ error: err });
+                });
+        }
     },
-    
-    
-    nodeMailerPastedTokenController:async(req,res)=>{
-         console.log("jaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-        const token= req.headers.authorization.split(" ")[1]
-        console.log("please give a token god",token)
-        try{
-          const  result=jwt.verify(token,"emailVerificationToken")
-          const  username=result.username
-          const  email=result.email
-          const  password=result.password
 
-          const newUserSignUp = new userLoginModel({
-            username: username,
-            email: email,
-            password: password,
+    nodeMailerPastedTokenController: async (req, res) => {
+        // console.log("jaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+        const token = req.headers.authorization.split(" ")[1];
+        // console.log("please give a token god", token);
+        try {
+            const result = jwt.verify(token, "emailVerificationToken");
+            const username = result.username;
+            const email = result.email;
+            const password = result.password;
 
-        });
-        await newUserSignUp
-        .save()
-        .then((data) => {
-            res.status(200).json(data);
-        })
-        .catch((err) => {
-            res.status(401).json(err);
-        });
-            
-    
-    
-        }catch(err){
-            res.status(401).json("There is a problem in your JWT verification please sign up with a valid email")
-        }  
-
-              
-          
-          
+            const newUserSignUp = new userLoginModel({
+                username: username,
+                email: email,
+                password: password,
+            });
+            await newUserSignUp
+                .save()
+                .then((data) => {
+                    res.status(200).json(data);
+                })
+                .catch((err) => {
+                    res.status(401).json(err);
+                });
+        } catch (err) {
+            res
+                .status(401)
+                .json(
+                    "There is a problem in your JWT verification please sign up with a valid email"
+                );
+        }
     },
-    
 
     // res.status(200).json(isUserLoginExist)
     userLoginController: async (req, res) => {
         const { email, password } = req.body;
-        console.log(req.body);
+        // console.log(req.body);
         await userLoginModel
             .findOne({ email })
             .then((result) => {
                 if (result) {
-                    console.log("after userrrrrrrrrrrr checking from database", result);
+                    // console.log("after userrrrrrrrrrrr checking from database", result);
                     const { username, email, status } = result;
 
                     if (status) {
-                        console.log("user is blocked");
+                        // console.log("user is blocked");
                         res.status(401).json("User is blocked By Admin");
                     } else {
                         const usertoken = jwt.sign(
                             { userId: result?._id, username: result?.username },
                             "userapplestoreserver"
                         );
-                        console.log("created tokennnnnnvnnnnrrrrrrrrrrrrr", usertoken);
+                        // console.log("created tokennnnnnvnnnnrrrrrrrrrrrrr", usertoken);
                         res.status(200).json({ usertoken, username });
                     }
                 } else {
@@ -124,11 +113,11 @@ module.exports = {
             });
     },
     userGetAllProductController: async (req, res) => {
-         let searhKey=req.query.search
-         console.log(searhKey)
-        
+        let searhKey = req.query.search;
+        // console.log(searhKey);
+
         await productsModel
-            .find({title:{$regex:searhKey,$options:"i"}})
+            .find({ title: { $regex: searhKey, $options: "i" } })
             .then((data) => {
                 res.status(200).json(data);
             })
@@ -155,6 +144,8 @@ module.exports = {
     userAddProductToCart: async (req, res) => {
         const userId = req.payload;
         const { productId } = req.body;
+        
+         
         const userCartDetail = await cartModel.findOne({ userId: userId });
         if (userCartDetail) {
             // console.log("padayapppaaaa", userCartDetail)
@@ -162,22 +153,25 @@ module.exports = {
                 return product.productId == productId;
             });
 
+            // console.log("productExistInCart16 ",productExistInCart)
+
             if (productExistInCart.length > 0) {
                 // console.log("sssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssssss", productExistInCart)
-                const result = await cartModel.updateOne(
-                    { "products.productId": productId },
+                const result = await cartModel.findOneAndUpdate(
+                    { "products.productId": productId,userId:userId },
                     { $inc: { "products.$.count": 1 } }
                 );
-                if (result.acknowledged === true) {
-                    res.status(200).json("Product Count increment by 1");
+                if (result) {
+                    // console.log(result)
+                    res.status(200).json({message:"Product Count increment by 1",updateresponse:result});
                 }
             } else {
-                const result = await cartModel.updateOne(
+                const result = await cartModel.findOneAndUpdate(
                     { userId: userId },
                     { $push: { products: { productId, count: 1 } } }
                 );
-                if (result.acknowledged === true) {
-                    res.status(200).json("New product is added to product array");
+                if (result) {
+                    res.status(200).json({message:"New product is added to product array",updateresponse:result});
                 }
             }
         } else {
@@ -192,16 +186,15 @@ module.exports = {
             });
 
             await newCartProduct.save();
-            res.status(200).json("neww product with new user added to cart");
+            res.status(200).json({message:"neww product with new user added to cart",updateresponse:newCartProduct});
         }
     },
     // add to wishlist
 
     userGetCartProductController: async (req, res) => {
         const userId = req.payload;
-
-        const cartProducts = await cartModel.aggregate([
-            { $match: { userId: userId } },
+        // console.log("userGetCartProductControllerrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr",userId)
+        const cartProducts = await cartModel.aggregate([{ $match:{userId:userId}},
             { $unwind: "$products" },
             {
                 $lookup: {
@@ -229,14 +222,15 @@ module.exports = {
                     },
                 },
             },
-            { $sort: { "_id.productDetails.title": 1 } },
-        ]);
+            { $sort: { "_id.productDetails.title": 1 } }
+        ])
         if (cartProducts) {
+            // console.log("cartProductstttttttttttttt match",cartProducts)
             let grandTotal = 0;
             cartProducts.forEach((product) => {
                 grandTotal += product._id.total;
             });
-
+            //  console.log("cartproductttttttt",)
             res.status(200).json({ cartProducts, grandTotal });
         } else {
             res
@@ -285,18 +279,18 @@ module.exports = {
             if (productExistInWishlist.length > 0) {
                 res.status(501).json("Product already exist in wishlist");
             } else {
-                const result = await wishlistModel.updateOne(
+                const result = await wishlistModel.findOneAndUpdate(
                     { userId: userId },
                     { $push: { products: { productId } } }
                 );
-                if (result.acknowledged === true) {
-                    res
-                        .status(200)
-                        .json("New product is added to wishlist product array");
+                if (result) {
+                   
+                        res.status(200)
+                        .json({message:"New product is added to wishlist product array",updateWishlistResponse:result});
                 }
             }
         } else {
-            const newCartProduct = new wishlistModel({
+            const newWishlistProduct = new wishlistModel({
                 userId: userId,
                 products: [
                     {
@@ -304,20 +298,13 @@ module.exports = {
                     },
                 ],
             });
-            await newCartProduct.save();
-            res.status(200).json("neww product with new user added to wishlist");
+            await newWishlistProduct.save();
+            res.status(200).json({message:"neww product with new user added to wishlist",updateWishlistResponse:newWishlistProduct});
         }
     },
-    //user want wishlist product 
+    //user want wishlist product
 
-    userGetWishlistProductController:async(req,res)=>{
-
-
-
-
-
-
-
+    userGetWishlistProductController: async (req, res) => {
         const userId = req.payload;
 
         const wishlistProducts = await wishlistModel.aggregate([
@@ -331,24 +318,17 @@ module.exports = {
                     as: "products.productDetails",
                 },
             },
-            { $unwind: "$products.productDetails" }
-          
-            
+            { $unwind: "$products.productDetails" },
         ]);
         if (wishlistProducts) {
-         
-          
-
             res.status(200).json(wishlistProducts);
         } else {
             res
                 .status(401)
                 .json("There is no Cart product So Plese add some PRoduct to cart");
         }
-
     },
-    removeProductFromWishlistController:async(req,res)=>{
-
+    removeProductFromWishlistController: async (req, res) => {
         const userId = req.payload;
         const { productId } = req.body;
         try {
@@ -361,68 +341,130 @@ module.exports = {
         } catch (err) {
             res.status(401).json(err);
         }
-
-
     },
 
-    placeOrderSubmitController:async(req,res)=>{
+    placeOrderSubmitController: async (req, res) => {
         const userId = req.payload;
-        const {name,housename,state,district,phone,email,total}=req.body
-        const userCartDetail=await cartModel.aggregate([{$match:{userId:userId}},{$unwind:"$products"},{$project:{_id:1,userId:1,"products.productId":1,"products.count":1}},{$group:{_id:{cartId:"$_id",userId:"$userId"},products:{$push:{productId:"$products.productId",count:"$products.count"}}}}])
-        // 
-        if(userCartDetail){
-            console.log("hsbdhavfjhdvjfhvshdkvfhksd",userCartDetail)
-            const userCartProductDetails=userCartDetail[0]?.products
-            if(userCartProductDetails?.length>0){
-                  const newOrderModel=new orderModel({
-                    userId,name,housename,state,district,phone,email,total,date:Date.now(),products:userCartProductDetails
-                })
-                newOrderModel.save()
-                await cartModel.findOneAndDelete({userId:userId})
-                res.status(200).json("placed")
-
-            }else{
-                res.status(401).json("You did not have any cart product")
+        const { name, housename, state, district, phone, email, total } = req.body;
+        const userCartDetail = await cartModel.aggregate([
+            { $match: { userId: userId } },
+            { $unwind: "$products" },
+            {
+                $project: {
+                    _id: 1,
+                    userId: 1,
+                    "products.productId": 1,
+                    "products.count": 1,
+                },
+            },
+            {
+                $group: {
+                    _id: { cartId: "$_id", userId: "$userId" },
+                    products: {
+                        $push: {
+                            productId: "$products.productId",
+                            count: "$products.count",
+                        },
+                    },
+                },
+            },
+        ]);
+        //
+        if (userCartDetail) {
+            // console.log("hsbdhavfjhdvjfhvshdkvfhksd", userCartDetail);
+            const userCartProductDetails = userCartDetail[0]?.products;
+            if (userCartProductDetails?.length > 0) {
+                const newOrderModel = new orderModel({
+                    userId,
+                    name,
+                    housename,
+                    state,
+                    district,
+                    phone,
+                    email,
+                    total,
+                    date: Date.now(),
+                    products: userCartProductDetails,
+                });
+                newOrderModel.save();
+                await cartModel.findOneAndDelete({ userId: userId });
+                res.status(200).json("placed");
+            } else {
+                res.status(401).json("You did not have any cart product");
             }
-          
-        }else{
-            res.status(401).json("You did not have any cart product")
+        } else {
+            res.status(401).json("You did not have any cart product");
         }
-
     },
-    getAllOrderController:async(req,res)=>{
-        console.log("userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr")
+    getAllOrderController: async (req, res) => {
+        // console.log("userrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrrr");
 
-        
         const userId = req.payload;
-        const result=await orderModel.find({userId:userId})
-        if(result.length>0){
-            console.log(result)
-            res.status(200).json(result)
+        const result = await orderModel.find({ userId: userId });
+        if (result.length > 0) {
+            // console.log(result);
+            res.status(200).json(result);
+        } else {
+            res.status(401).json("You have no Orders");
+        }
+    },
+    getAllTrendingProductController: async (req, res) => {
+        // console.log();
+        await trendingProductsModel
+            .find()
+            .then((data) => {
+                res.status(200).json(data);
+            })
+            .catch((err) => {
+                res.status(401).json(err);
+            });
+    },
+    getSingleProductController: async (req, res) => {
+        const { id } = req.body;
+
+        await productsModel
+            .findOne({ _id: id })
+            .then((data) => {
+                res.status(200).json(data);
+            })
+            .catch((err) => {
+                res.status(401).json(err);
+            });
+    },
+    getCartCountController:async(req,res)=>{
+        const userId = req.payload;
+
+        const userCartDetailCount = await cartModel.findOne({userId:userId})
+              if(userCartDetailCount){
+                      let cartcount=0
+                      userCartDetailCount.products.forEach((data)=>{
+                        
+                        cartcount+=data.count
+                      })
+
+                      res.status(200).json({cartcount})
+
+              }else{
+                      res.status(501).json({cartcount:0})   
+              }
+      
+
+    },
+    getWishlistCountController:async(req,res)=>{
+        const userId = req.payload;
+        const userWishlistDetailCount = await wishlistModel.findOne({userId:userId})
+        if(userWishlistDetailCount){
+               
+                const wishlistcount= userWishlistDetailCount.products.length
+                  
+               
+                // console.log("wishlistcount",wishlistcount)
+
+                res.status(200).json({wishlistcount})
+
         }else{
-            res.status(401).json("You have no Orders")
+                res.status(501).json({wishlistcount:0})   
         }
 
-    
-    },
-    getAllTrendingProductController:async(req,res)=>{
-        console.log()
-        await trendingProductsModel.find().then((data)=>{
-            res.status(200).json(data)
-    }).catch((err)=>{
-            res.status(401).json(err)
-    })
-
-    },
-
-
-   
-
-
+    }
 };
-          
-            
-
-            
-
-
