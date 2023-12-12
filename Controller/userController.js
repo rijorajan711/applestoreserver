@@ -34,7 +34,7 @@ module.exports = {
             let transporter = nodemailer.createTransport(mailerConfig);
             let message = {
                 from: authEmail,
-                to: "rijorajan27594@gmail.com",
+                to: email,
                 subject: "hellow rijo",
                 text: `${emailVerificationToken}`,
             };
